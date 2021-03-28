@@ -16,7 +16,7 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	if validators.UserCreateValidator(input) == false {
+	if !validators.UserCreateValidator(input){
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad Request"})
 		return
 	}
@@ -38,4 +38,27 @@ func GetUsers(c *gin.Context) {
 	users := repositories.GetUsers()
 
 	c.JSON(http.StatusCreated, gin.H{"data": users})
+}
+
+
+
+func UpdateUser(c *gin.Context) {
+	var user models.User
+	
+	if repositories.VerifyIfUserExists(&user, c) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User not found"})
+		return
+	}
+
+	var input models.User
+	if err := c.BindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad Request"})
+		return
+	}
+
+	if repositories.UpdateUser(&user, &input) != nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "Error"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": user})
 }
